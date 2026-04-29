@@ -73,11 +73,12 @@
   .quick-tags{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
   .quick-tag{padding:5px 12px;background:var(--tg-bg-tertiary);color:var(--tg-text-secondary);border-radius:100px;font-size:12px;cursor:pointer;border:1px solid transparent;transition:all .15s ease}
   .quick-tag:hover{border-color:var(--tg-accent);color:var(--tg-accent)}
-  .stats{display:flex;gap:16px;margin-bottom:14px;font-size:13px}
+  .stats{display:flex;gap:16px;margin-bottom:14px;font-size:13px;flex-wrap:wrap}
   .stat{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--tg-bg-tertiary);border-radius:100px;color:var(--tg-text-secondary);font-weight:500}
   .stat.green{background:rgba(16,185,129,.1);color:var(--tg-success)}
   .stat.amber{background:rgba(245,158,11,.1);color:var(--tg-warning)}
   .stat.red{background:rgba(239,68,68,.1);color:var(--tg-error)}
+  .stat.blue{background:rgba(0,180,216,.1);color:var(--tg-accent)}
   .feed{background:var(--tg-bg-secondary);border:1px solid var(--tg-border);border-radius:var(--radius-md);padding:8px;max-height:480px;overflow-y:auto;font-family:'JetBrains Mono','SF Mono',monospace;font-size:13px}
   .feed-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius-sm);margin-bottom:2px;transition:background .15s ease}
   .feed-row:hover{background:var(--tg-bg-tertiary)}
@@ -98,6 +99,7 @@
   .gate-card h2{font-size:20px;font-weight:700;margin-bottom:8px}
   .gate-card p{color:var(--tg-text-secondary);margin-bottom:24px;font-size:14px}
   .help{font-size:12px;color:var(--tg-text-tertiary);margin-top:8px}
+  .batch-info{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(0,180,216,.1);color:var(--tg-accent);border-radius:100px;font-size:12px;font-weight:500;margin-left:10px}
   @media (max-width:640px){.card{padding:20px}.row{flex-direction:column}}
 </style>
 </head>
@@ -164,20 +166,20 @@
   <!-- Step 2: Edit list and run -->
   <section class="card">
     <h2>2. Review the list and run</h2>
-    <p class="sub">One brand per line. Edit freely before hitting Run. Already-imported brands are auto-skipped.</p>
+    <p class="sub">One brand per line. Edit freely before hitting Run. Already-imported brands are auto-skipped. Lists over 30 brands are auto-batched.</p>
     <textarea class="textarea" id="brandList" placeholder="British Airways&#10;Virgin Atlantic&#10;easyJet&#10;Jet2"></textarea>
     <div class="row" style="margin-top:14px">
       <button class="btn" id="runBtn" onclick="runBulk()" style="flex:1">
         <span id="runBtnText">Run bulk import</span>
       </button>
-      <button class="btn secondary" onclick="document.getElementById('brandList').value=''">Clear</button>
+      <button class="btn secondary" onclick="document.getElementById('brandList').value='';updateCount()">Clear</button>
     </div>
     <p class="help" id="brandCount">0 brands ready</p>
   </section>
 
   <!-- Step 3: Progress feed -->
   <section class="card" id="progressCard" style="display:none">
-    <h2>3. Progress</h2>
+    <h2>3. Progress <span class="batch-info" id="batchInfo" style="display:none"></span></h2>
     <p class="sub" id="progressSub">Processing...</p>
     <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
     <div class="stats" id="stats">
@@ -191,6 +193,14 @@
 </div>
 
 <script>
+  // ── Auto-batching config ──
+  // Server function timeout is 60s on Hobby plan, 300s on Pro.
+  // BATCH_SIZE controls how many brands per server request.
+  // 30 = comfortable fit inside a 60s budget with safety margin.
+  // Bump to 80-100 if you upgrade to Pro and update vercel.json's maxDuration.
+  const BATCH_SIZE = 30;
+  const BATCH_PAUSE_MS = 2000;  // pause between batches
+
   let password = sessionStorage.getItem('tg-logo-pw') || '';
 
   function $(id){return document.getElementById(id)}
@@ -238,7 +248,13 @@
   $('brandList').addEventListener('input', updateCount);
   function updateCount() {
     const lines = $('brandList').value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    $('brandCount').textContent = `${lines.length} brand${lines.length === 1 ? '' : 's'} ready`;
+    const n = lines.length;
+    let label = `${n} brand${n === 1 ? '' : 's'} ready`;
+    if (n > BATCH_SIZE) {
+      const batches = Math.ceil(n / BATCH_SIZE);
+      label += ` — will run in ${batches} batches of up to ${BATCH_SIZE}`;
+    }
+    $('brandCount').textContent = label;
   }
 
   async function suggestBrands() {
@@ -268,15 +284,59 @@
     }
   }
 
+  // Process a single batch — sends to /api/bulk-process and reads SSE.
+  // Calls onEvent(eventType, data) for each event so the caller can update UI.
+  async function processBatch(brandsInBatch, batchOffset, onEvent) {
+    const resp = await fetch('/api/bulk-process', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': password },
+      body: JSON.stringify({ brands: brandsInBatch })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ error: 'Server error' }));
+      throw new Error(err.error || 'Bulk import failed');
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const messages = buffer.split('\n\n');
+      buffer = messages.pop() || '';
+
+      for (const msg of messages) {
+        if (!msg.trim()) continue;
+        const eventMatch = msg.match(/^event:\s*(.+)$/m);
+        const dataMatch = msg.match(/^data:\s*(.+)$/m);
+        if (!eventMatch || !dataMatch) continue;
+        const event = eventMatch[1].trim();
+        let data;
+        try { data = JSON.parse(dataMatch[1]); } catch { continue; }
+
+        // Translate the batch-local index into the global index across all batches
+        if (typeof data.index === 'number') {
+          data.globalIndex = batchOffset + data.index;
+        }
+        onEvent(event, data);
+      }
+    }
+  }
+
   async function runBulk() {
     const text = $('brandList').value.trim();
-    const brands = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    if (brands.length === 0) {
+    const allBrands = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    if (allBrands.length === 0) {
       alert('Add at least one brand to the list.');
       return;
     }
-    if (brands.length > 100) {
-      alert('Maximum 100 brands per run. Trim the list and try again.');
+    if (allBrands.length > 500) {
+      alert('Maximum 500 brands per run. Trim the list and try again.');
       return;
     }
 
@@ -285,8 +345,8 @@
     $('progressCard').style.display = 'block';
     $('progressCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    // Pre-fill the feed with pending rows
-    $('feed').innerHTML = brands.map((b, i) => `
+    // Pre-fill the feed with pending rows for ALL brands across all batches
+    $('feed').innerHTML = allBrands.map((b, i) => `
       <div class="feed-row" id="row-${i}">
         <div class="feed-icon pending">${i + 1}</div>
         <div class="feed-brand">${escapeHtml(b)}</div>
@@ -294,54 +354,42 @@
       </div>
     `).join('');
 
+    // Split into batches
+    const batches = [];
+    for (let i = 0; i < allBrands.length; i += BATCH_SIZE) {
+      batches.push(allBrands.slice(i, i + BATCH_SIZE));
+    }
+
+    const total = allBrands.length;
     let succeeded = 0, skipped = 0, failed = 0;
-    const total = brands.length;
-    updateStats(0, 0, 0, total);
+
+    if (batches.length > 1) {
+      $('batchInfo').style.display = 'inline-flex';
+      $('batchInfo').textContent = `0 of ${batches.length} batches`;
+    }
+
+    updateStats(0, 0, 0, total, 0);
 
     try {
-      const resp = await fetch('/api/bulk-process', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Admin-Password': password },
-        body: JSON.stringify({ brands })
-      });
+      for (let bIdx = 0; bIdx < batches.length; bIdx++) {
+        const batch = batches[bIdx];
+        const offset = bIdx * BATCH_SIZE;
 
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({ error: 'Server error' }));
-        throw new Error(err.error || 'Bulk import failed');
-      }
+        if (batches.length > 1) {
+          $('progressSub').textContent = `Running batch ${bIdx + 1} of ${batches.length} (${batch.length} brands)...`;
+          $('batchInfo').textContent = `Batch ${bIdx + 1} of ${batches.length}`;
+        }
 
-      // Read SSE stream
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        // Parse SSE messages — each one ends with double newline
-        const messages = buffer.split('\n\n');
-        buffer = messages.pop() || '';
-
-        for (const msg of messages) {
-          if (!msg.trim()) continue;
-          const eventMatch = msg.match(/^event:\s*(.+)$/m);
-          const dataMatch = msg.match(/^data:\s*(.+)$/m);
-          if (!eventMatch || !dataMatch) continue;
-          const event = eventMatch[1].trim();
-          let data;
-          try { data = JSON.parse(dataMatch[1]); } catch { continue; }
-
+        await processBatch(batch, offset, (event, data) => {
           if (event === 'brand-start') {
-            const row = $('row-' + data.index);
+            const row = $('row-' + data.globalIndex);
             if (row) {
               row.querySelector('.feed-icon').className = 'feed-icon processing';
               row.querySelector('.feed-icon').innerHTML = '<span class="spinner" style="width:10px;height:10px"></span>';
               row.querySelector('.feed-detail').textContent = 'Processing...';
             }
           } else if (event === 'brand-done') {
-            const row = $('row-' + data.index);
+            const row = $('row-' + data.globalIndex);
             if (row) {
               row.querySelector('.feed-icon').className = 'feed-icon success';
               row.querySelector('.feed-icon').innerHTML = '\u2713';
@@ -350,7 +398,7 @@
             succeeded++;
             updateStats(succeeded, skipped, failed, total, succeeded + skipped + failed);
           } else if (event === 'brand-skip') {
-            const row = $('row-' + data.index);
+            const row = $('row-' + data.globalIndex);
             if (row) {
               row.querySelector('.feed-icon').className = 'feed-icon skip';
               row.querySelector('.feed-icon').innerHTML = '\u2014';
@@ -359,7 +407,7 @@
             skipped++;
             updateStats(succeeded, skipped, failed, total, succeeded + skipped + failed);
           } else if (event === 'brand-fail') {
-            const row = $('row-' + data.index);
+            const row = $('row-' + data.globalIndex);
             if (row) {
               row.querySelector('.feed-icon').className = 'feed-icon fail';
               row.querySelector('.feed-icon').innerHTML = '\u2717';
@@ -367,11 +415,38 @@
             }
             failed++;
             updateStats(succeeded, skipped, failed, total, succeeded + skipped + failed);
-          } else if (event === 'done') {
-            $('progressSub').textContent = `Finished. ${data.succeeded} saved, ${data.skipped} skipped, ${data.failed} failed.`;
           }
+          // We deliberately ignore 'start' and 'done' from individual batches —
+          // those are batch-level events. We track totals across batches ourselves.
+        });
+
+        // Pause between batches (skip after last one)
+        if (bIdx < batches.length - 1) {
+          $('progressSub').textContent = `Batch ${bIdx + 1} done. Pausing before batch ${bIdx + 2}...`;
+          await new Promise(r => setTimeout(r, BATCH_PAUSE_MS));
         }
       }
+
+      $('progressSub').textContent = `Finished. ${succeeded} saved, ${skipped} skipped, ${failed} failed across ${batches.length} batch${batches.length === 1 ? '' : 'es'}.`;
+      if (batches.length > 1) {
+        $('batchInfo').textContent = `All ${batches.length} batches complete`;
+      }
+
+      // Mark any rows still showing "Queued" or "Processing..." as untreated.
+      // This catches edge cases where the server died mid-stream and never
+      // sent the brand's terminal event, so the user isn't left wondering.
+      const stuckRows = document.querySelectorAll('.feed-row');
+      stuckRows.forEach(row => {
+        const detail = row.querySelector('.feed-detail');
+        const icon = row.querySelector('.feed-icon');
+        if (detail && (detail.textContent === 'Queued' || detail.textContent === 'Processing...')) {
+          icon.className = 'feed-icon fail';
+          icon.innerHTML = '?';
+          detail.textContent = 'No result returned (batch may have timed out)';
+          failed++;
+        }
+      });
+      updateStats(succeeded, skipped, failed, total, succeeded + skipped + failed);
     } catch (err) {
       $('progressSub').textContent = 'Error: ' + err.message;
       $('progressSub').style.color = 'var(--tg-error)';
