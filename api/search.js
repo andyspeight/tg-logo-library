@@ -6,7 +6,6 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY })
   .base(process.env.AIRTABLE_BASE_ID);
 
 export default async function handler(req, res) {
-  // CORS preflight
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -16,12 +15,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Rate limit — generous because this fires on every keystroke in the picker
   const rl = await rateLimit(req, 'search', 120, '1 m');
   if (!rl.ok) return denyRateLimit(res, rl.reset);
 
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300');
 
   const { q, limit } = req.query;
   if (!q || typeof q !== 'string' || q.length < 1 || q.length > 100) {
@@ -32,12 +29,11 @@ export default async function handler(req, res) {
   const query = q.trim().toLowerCase();
 
   try {
-    // Use Airtable's filterByFormula with a SEARCH() across name + domain
-    // Escape any quotes in the query to avoid breaking the formula
     const safeQuery = query.replace(/"/g, '\\"');
-    const formula = `OR(SEARCH(LOWER("${safeQuery}"), LOWER({Brand Name})), SEARCH(LOWER("${safeQuery}"), LOWER({Domain})))`;
+    const formula = `OR(SEARCH(LOWER("${safeQuery}"), LOWER({Brand Name} & "")), SEARCH(LOWER("${safeQuery}"), LOWER({Domain} & "")))`;
 
     const brandRecords = await base(TABLES.BRANDS).select({
+      returnFieldsByFieldId: true,
       filterByFormula: formula,
       maxRecords: max,
       fields: [
@@ -54,18 +50,17 @@ export default async function handler(req, res) {
       return res.json({ query, results: [] });
     }
 
-    // Collect all asset record IDs across the matched brands
     const allAssetIds = [];
     brandRecords.forEach(b => {
       const ids = b.get(BRAND_FIELDS.ASSETS) || [];
       ids.forEach(id => allAssetIds.push(id));
     });
 
-    // Fetch all assets in one go (Airtable supports up to ~100 in a filterByFormula)
     let assetsById = {};
     if (allAssetIds.length > 0) {
       const assetFormula = `OR(${allAssetIds.map(id => `RECORD_ID()="${id}"`).join(',')})`;
       const assetRecords = await base(TABLES.ASSETS).select({
+        returnFieldsByFieldId: true,
         filterByFormula: assetFormula,
         fields: [
           ASSET_FIELDS.TYPE,
@@ -78,7 +73,6 @@ export default async function handler(req, res) {
       assetRecords.forEach(a => { assetsById[a.id] = a; });
     }
 
-    // Score each result for relevance — exact name matches first, then prefix, then anywhere
     const results = brandRecords.map(b => {
       const name = (b.get(BRAND_FIELDS.NAME) || '').toString();
       const domain = (b.get(BRAND_FIELDS.DOMAIN) || '').toString();
@@ -105,7 +99,6 @@ export default async function handler(req, res) {
           height: a.get(ASSET_FIELDS.HEIGHT)
         }));
 
-      // Pick the preferred display asset: SVG > PNG-Transparent > anything
       const preferred =
         assets.find(a => a.type === 'SVG') ||
         assets.find(a => a.type === 'PNG-Transparent') ||
@@ -124,13 +117,11 @@ export default async function handler(req, res) {
       };
     });
 
-    // Sort by score descending, then alphabetical
     results.sort((a, b) => {
       if (b._score !== a._score) return b._score - a._score;
       return a.name.localeCompare(b.name);
     });
 
-    // Strip internal score before sending
     results.forEach(r => delete r._score);
 
     return res.json({ query, results });
