@@ -53,10 +53,25 @@ export const LOG_FIELDS = {
 
 // ============ HELPERS ============
 
-/** Find an existing brand record by domain (case-insensitive). */
+/**
+ * Find an existing brand record by domain (case-insensitive).
+ * Uses string concatenation trick (& "") to coerce URL field to text,
+ * which makes LOWER() work reliably. Strips https:// and trailing slashes
+ * for robust comparison since URL fields can store various formats.
+ */
 export async function findBrandByDomain(domain) {
+  const normalised = domain
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/\/$/, '')
+    .replace(/"/g, '');
+
+  // SUBSTITUTE() strips https:// and trailing slash from the stored value
+  // so we compare clean domain to clean domain
+  const formula = `LOWER(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Domain} & "", "https://", ""), "http://", ""), "/", "")) = "${normalised}"`;
+
   const records = await base(TABLES.BRANDS).select({
-    filterByFormula: `LOWER({Domain}) = LOWER("${domain.replace(/"/g, '')}")`,
+    filterByFormula: formula,
     maxRecords: 1
   }).firstPage();
   return records[0] || null;
