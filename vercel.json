@@ -12,6 +12,14 @@
       "memory": 256,
       "maxDuration": 10
     },
+    "api/list-all.js": {
+      "memory": 256,
+      "maxDuration": 10
+    },
+    "api/search.js": {
+      "memory": 256,
+      "maxDuration": 10
+    },
     "api/resolve-domain.js": {
       "memory": 256,
       "maxDuration": 10
@@ -23,13 +31,21 @@
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET, OPTIONS" },
-        { "key": "Cache-Control", "value": "public, max-age=300, s-maxage=600" }
+        { "key": "Cache-Control", "value": "no-store" }
       ]
     },
     {
-      "source": "/api/(discover|save|resolve-domain)",
+      "source": "/api/search",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "https://logos.travelgenix.io" }
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, OPTIONS" },
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/api/(discover|save|resolve-domain|list-all)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
       ]
     }
   ]
