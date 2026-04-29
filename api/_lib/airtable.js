@@ -3,8 +3,6 @@ import Airtable from 'airtable';
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY })
   .base(process.env.AIRTABLE_BASE_ID);
 
-// ============ TABLE + FIELD IDS ============
-
 export const TABLES = {
   BRANDS: 'tblcy7DwlCfCdUNVd',
   ASSETS: 'tblMmJWiimFI9xwln',
@@ -50,9 +48,6 @@ export const LOG_FIELDS = {
   NOTES: 'fldgzeeORLmJghyuO'
 };
 
-// ============ HELPERS ============
-
-/** Normalise a domain for comparison: lowercase, no protocol, no trailing slash, no www. */
 function normaliseDomain(d) {
   if (!d) return '';
   return String(d)
@@ -63,27 +58,37 @@ function normaliseDomain(d) {
     .replace(/\/+$/, '');
 }
 
-/**
- * Find an existing brand record by domain (case-insensitive).
- * Pulls all brands and filters in code — bulletproof against any Airtable URL field weirdness.
- * Performance is fine for our scale (a few hundred brands max).
- */
 export async function findBrandByDomain(domain) {
   const target = normaliseDomain(domain);
+  console.log('[findBrandByDomain] Searching for normalised target:', target);
   if (!target) return null;
 
-  const all = await base(TABLES.BRANDS).select({
-    fields: [BRAND_FIELDS.DOMAIN]
-  }).all();
+  try {
+    const all = await base(TABLES.BRANDS).select({
+      fields: [BRAND_FIELDS.DOMAIN, BRAND_FIELDS.NAME]
+    }).all();
 
-  const match = all.find(r => normaliseDomain(r.get(BRAND_FIELDS.DOMAIN)) === target);
-  if (!match) return null;
+    console.log('[findBrandByDomain] Total brands fetched:', all.length);
+    all.forEach(r => {
+      const raw = r.get(BRAND_FIELDS.DOMAIN);
+      const normalised = normaliseDomain(raw);
+      console.log(`  Brand "${r.get(BRAND_FIELDS.NAME)}" — raw domain: "${raw}", normalised: "${normalised}"`);
+    });
 
-  // Re-fetch with all fields populated
-  return await base(TABLES.BRANDS).find(match.id);
+    const match = all.find(r => normaliseDomain(r.get(BRAND_FIELDS.DOMAIN)) === target);
+    if (!match) {
+      console.log('[findBrandByDomain] No match found');
+      return null;
+    }
+
+    console.log('[findBrandByDomain] Match found:', match.id);
+    return await base(TABLES.BRANDS).find(match.id);
+  } catch (err) {
+    console.error('[findBrandByDomain] Error:', err.message, err);
+    throw err;
+  }
 }
 
-/** Create a new brand record. */
 export async function createBrand(fields) {
   const records = await base(TABLES.BRANDS).create([{
     fields: {
@@ -102,7 +107,6 @@ export async function createBrand(fields) {
   return records[0];
 }
 
-/** Update an existing brand. */
 export async function updateBrand(recordId, fields) {
   const mapped = {};
   if (fields.name !== undefined) mapped[BRAND_FIELDS.NAME] = fields.name;
@@ -122,7 +126,6 @@ export async function updateBrand(recordId, fields) {
   return records[0];
 }
 
-/** Create an asset record linked to a brand. */
 export async function createAsset(fields) {
   const records = await base(TABLES.ASSETS).create([{
     fields: {
@@ -142,7 +145,6 @@ export async function createAsset(fields) {
   return records[0];
 }
 
-/** Append to the discovery log. */
 export async function logDiscovery(fields) {
   const searchId = `search-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   await base(TABLES.DISCOVERY_LOG).create([{
@@ -159,7 +161,6 @@ export async function logDiscovery(fields) {
   }], { typecast: true });
 }
 
-/** List all assets for a brand by domain. Used by the public list API. */
 export async function listAssetsByDomain(domain) {
   const brand = await findBrandByDomain(domain);
   if (!brand) return null;
