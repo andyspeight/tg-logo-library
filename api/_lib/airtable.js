@@ -60,37 +60,17 @@ function normaliseDomain(d) {
 
 export async function findBrandByDomain(domain) {
   const target = normaliseDomain(domain);
-  console.log('[findBrandByDomain] Searching for normalised target:', target);
   if (!target) return null;
 
-  try {
-    // returnFieldsByFieldId makes r.get('fldXXX...') work reliably
-    const all = await base(TABLES.BRANDS).select({
-      returnFieldsByFieldId: true,
-      fields: [BRAND_FIELDS.DOMAIN, BRAND_FIELDS.NAME]
-    }).all();
+  const all = await base(TABLES.BRANDS).select({
+    returnFieldsByFieldId: true,
+    fields: [BRAND_FIELDS.DOMAIN, BRAND_FIELDS.NAME]
+  }).all();
 
-    console.log('[findBrandByDomain] Total brands fetched:', all.length);
-    all.forEach(r => {
-      const raw = r.get(BRAND_FIELDS.DOMAIN);
-      const normalised = normaliseDomain(raw);
-      console.log(`  Brand "${r.get(BRAND_FIELDS.NAME)}" — raw domain: "${raw}", normalised: "${normalised}"`);
-    });
+  const match = all.find(r => normaliseDomain(r.get(BRAND_FIELDS.DOMAIN)) === target);
+  if (!match) return null;
 
-    const match = all.find(r => normaliseDomain(r.get(BRAND_FIELDS.DOMAIN)) === target);
-    if (!match) {
-      console.log('[findBrandByDomain] No match found');
-      return null;
-    }
-
-    console.log('[findBrandByDomain] Match found:', match.id);
-    // Re-fetch with all fields, again returning by field ID
-    const fullRecord = await base(TABLES.BRANDS).find(match.id);
-    return fullRecord;
-  } catch (err) {
-    console.error('[findBrandByDomain] Error:', err.message, err);
-    throw err;
-  }
+  return await base(TABLES.BRANDS).find(match.id);
 }
 
 export async function createBrand(fields) {
@@ -169,9 +149,6 @@ export async function listAssetsByDomain(domain) {
   const brand = await findBrandByDomain(domain);
   if (!brand) return null;
 
-  // Note: brand was fetched via .find() which returns fields by NAME by default.
-  // But our calling code (api/list.js) uses BRAND_FIELDS.ASSETS as a key,
-  // so we need to map back. Easiest: fetch by ID format.
   const brandWithIds = await base(TABLES.BRANDS).select({
     returnFieldsByFieldId: true,
     filterByFormula: `RECORD_ID() = "${brand.id}"`,
