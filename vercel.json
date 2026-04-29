@@ -1,52 +1,395 @@
-{
-  "functions": {
-    "api/discover.js": {
-      "memory": 1024,
-      "maxDuration": 30
-    },
-    "api/save.js": {
-      "memory": 1024,
-      "maxDuration": 30
-    },
-    "api/list.js": {
-      "memory": 256,
-      "maxDuration": 10
-    },
-    "api/list-all.js": {
-      "memory": 256,
-      "maxDuration": 10
-    },
-    "api/search.js": {
-      "memory": 256,
-      "maxDuration": 10
-    },
-    "api/resolve-domain.js": {
-      "memory": 256,
-      "maxDuration": 10
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulk Import — Travelgenix Logo Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --tg-primary: #1B2B5B;
+    --tg-primary-light: #2A3F7A;
+    --tg-accent: #00B4D8;
+    --tg-accent-dark: #0096B7;
+    --tg-success: #10B981;
+    --tg-warning: #F59E0B;
+    --tg-error: #EF4444;
+    --tg-bg-primary: #FFFFFF;
+    --tg-bg-secondary: #F8FAFC;
+    --tg-bg-tertiary: #F1F5F9;
+    --tg-border: #E2E8F0;
+    --tg-text-primary: #0F172A;
+    --tg-text-secondary: #475569;
+    --tg-text-tertiary: #94A3B8;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.06);
+    --shadow-lg: 0 12px 32px rgba(15,23,42,.08);
+  }
+  [data-theme="dark"] {
+    --tg-bg-primary: #0F172A;
+    --tg-bg-secondary: #1E293B;
+    --tg-bg-tertiary: #334155;
+    --tg-border: #334155;
+    --tg-text-primary: #F8FAFC;
+    --tg-text-secondary: #CBD5E1;
+    --tg-text-tertiary: #64748B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--tg-bg-secondary);color:var(--tg-text-primary);font-size:15px;line-height:1.6;min-height:100vh}
+  .app{max-width:1200px;margin:0 auto;padding:32px 24px}
+  .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand-mark{width:36px;height:36px;background:var(--tg-primary);border-radius:var(--radius-md);display:grid;place-items:center;color:#fff}
+  .brand-text h1{font-size:16px;font-weight:600;letter-spacing:-.01em}
+  .brand-text p{font-size:13px;color:var(--tg-text-tertiary)}
+  .header-actions{display:flex;gap:8px;align-items:center}
+  .nav-link{padding:8px 14px;border-radius:var(--radius-md);color:var(--tg-text-secondary);text-decoration:none;font-size:14px;font-weight:500;transition:all .15s ease}
+  .nav-link:hover{background:var(--tg-bg-tertiary);color:var(--tg-text-primary)}
+  .nav-link.active{background:var(--tg-primary);color:#fff}
+  .nav-link.active:hover{background:var(--tg-primary-light);color:#fff}
+  .icon-btn{width:40px;height:40px;border-radius:var(--radius-md);border:1px solid var(--tg-border);background:var(--tg-bg-primary);cursor:pointer;display:grid;place-items:center;color:var(--tg-text-secondary);transition:all .15s ease}
+  .icon-btn:hover{border-color:var(--tg-accent);color:var(--tg-accent)}
+  .card{background:var(--tg-bg-primary);border:1px solid var(--tg-border);border-radius:var(--radius-xl);padding:32px;box-shadow:var(--shadow-sm);margin-bottom:20px}
+  .card h2{font-size:18px;font-weight:700;letter-spacing:-.01em;margin-bottom:6px}
+  .card .sub{color:var(--tg-text-secondary);font-size:14px;margin-bottom:20px}
+  .row{display:flex;gap:12px;align-items:stretch}
+  .input{flex:1;height:44px;padding:0 14px;border:1px solid var(--tg-border);border-radius:var(--radius-md);background:var(--tg-bg-primary);color:var(--tg-text-primary);font-family:inherit;font-size:14px;transition:all .15s ease}
+  .input:focus{outline:none;border-color:var(--tg-accent);box-shadow:0 0 0 3px rgba(0,180,216,.15)}
+  .textarea{width:100%;min-height:200px;padding:14px;border:1px solid var(--tg-border);border-radius:var(--radius-md);background:var(--tg-bg-primary);color:var(--tg-text-primary);font-family:'JetBrains Mono','SF Mono',monospace;font-size:13px;line-height:1.7;resize:vertical;transition:all .15s ease}
+  .textarea:focus{outline:none;border-color:var(--tg-accent);box-shadow:0 0 0 3px rgba(0,180,216,.15)}
+  .btn{height:44px;padding:0 20px;background:var(--tg-primary);color:#fff;border:none;border-radius:var(--radius-md);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s ease;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+  .btn:hover{background:var(--tg-primary-light)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .btn.secondary{background:var(--tg-bg-primary);color:var(--tg-text-primary);border:1px solid var(--tg-border)}
+  .btn.secondary:hover{border-color:var(--tg-accent);color:var(--tg-accent);background:var(--tg-bg-primary)}
+  .btn.accent{background:var(--tg-accent)}
+  .btn.accent:hover{background:var(--tg-accent-dark)}
+  .quick-tags{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+  .quick-tag{padding:5px 12px;background:var(--tg-bg-tertiary);color:var(--tg-text-secondary);border-radius:100px;font-size:12px;cursor:pointer;border:1px solid transparent;transition:all .15s ease}
+  .quick-tag:hover{border-color:var(--tg-accent);color:var(--tg-accent)}
+  .stats{display:flex;gap:16px;margin-bottom:14px;font-size:13px}
+  .stat{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--tg-bg-tertiary);border-radius:100px;color:var(--tg-text-secondary);font-weight:500}
+  .stat.green{background:rgba(16,185,129,.1);color:var(--tg-success)}
+  .stat.amber{background:rgba(245,158,11,.1);color:var(--tg-warning)}
+  .stat.red{background:rgba(239,68,68,.1);color:var(--tg-error)}
+  .feed{background:var(--tg-bg-secondary);border:1px solid var(--tg-border);border-radius:var(--radius-md);padding:8px;max-height:480px;overflow-y:auto;font-family:'JetBrains Mono','SF Mono',monospace;font-size:13px}
+  .feed-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius-sm);margin-bottom:2px;transition:background .15s ease}
+  .feed-row:hover{background:var(--tg-bg-tertiary)}
+  .feed-icon{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff}
+  .feed-icon.pending{background:var(--tg-text-tertiary)}
+  .feed-icon.processing{background:var(--tg-accent)}
+  .feed-icon.success{background:var(--tg-success)}
+  .feed-icon.skip{background:var(--tg-warning)}
+  .feed-icon.fail{background:var(--tg-error)}
+  .feed-brand{flex:1;color:var(--tg-text-primary);font-weight:500}
+  .feed-detail{color:var(--tg-text-tertiary);font-size:12px}
+  .progress-bar{height:6px;background:var(--tg-bg-tertiary);border-radius:100px;overflow:hidden;margin-bottom:14px}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--tg-accent),var(--tg-success));transition:width .3s ease;border-radius:100px}
+  .spinner{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .gate{position:fixed;inset:0;background:var(--tg-bg-secondary);display:grid;place-items:center;z-index:1000}
+  .gate-card{background:var(--tg-bg-primary);border:1px solid var(--tg-border);border-radius:var(--radius-xl);padding:40px;box-shadow:var(--shadow-lg);max-width:400px;width:90%}
+  .gate-card h2{font-size:20px;font-weight:700;margin-bottom:8px}
+  .gate-card p{color:var(--tg-text-secondary);margin-bottom:24px;font-size:14px}
+  .help{font-size:12px;color:var(--tg-text-tertiary);margin-top:8px}
+  @media (max-width:640px){.card{padding:20px}.row{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <h2>Logo Library</h2>
+    <p>Enter your admin password to continue.</p>
+    <input type="password" class="input" id="passwordInput" placeholder="Password" onkeydown="if(event.key==='Enter')unlock()" autofocus>
+    <button class="btn" style="width:100%;margin-top:16px" onclick="unlock()">Unlock</button>
+    <p id="gateError" style="color:var(--tg-error);margin-top:12px;display:none;font-size:13px"></p>
+  </div>
+</div>
+
+<div class="app" id="app" style="display:none">
+  <header class="header">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          <circle cx="9" cy="9" r="2"/>
+          <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>Bulk Import</h1>
+        <p>Add many brands at once</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="/" class="nav-link">Add new</a>
+      <a href="/browse.html" class="nav-link">Browse</a>
+      <a href="/bulk.html" class="nav-link active">Bulk import</a>
+      <button class="icon-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Step 1: AI suggester -->
+  <section class="card" id="suggesterCard">
+    <h2>1. Suggest brands by category</h2>
+    <p class="sub">Type a category and Claude will return a list of well-known brands in that space. You can edit the list before running.</p>
+    <div class="row">
+      <input type="text" class="input" id="categoryInput" placeholder="e.g. UK airlines, European hotel chains, UK consortia" onkeydown="if(event.key==='Enter')suggestBrands()">
+      <button class="btn accent" id="suggestBtn" onclick="suggestBrands()">
+        <span id="suggestBtnText">Suggest brands</span>
+      </button>
+    </div>
+    <div class="quick-tags">
+      <span class="quick-tag" onclick="setCategory('UK airlines')">UK airlines</span>
+      <span class="quick-tag" onclick="setCategory('Major UK tour operators')">UK tour operators</span>
+      <span class="quick-tag" onclick="setCategory('European low-cost airlines')">European low-cost</span>
+      <span class="quick-tag" onclick="setCategory('UK travel consortia')">UK consortia</span>
+      <span class="quick-tag" onclick="setCategory('Top 30 UK hotel chains')">UK hotels</span>
+      <span class="quick-tag" onclick="setCategory('Premium hotel brands worldwide')">Premium hotels</span>
+      <span class="quick-tag" onclick="setCategory('Cruise lines departing UK ports')">Cruise lines</span>
+      <span class="quick-tag" onclick="setCategory('GDS and bedbank suppliers')">Bedbanks</span>
+      <span class="quick-tag" onclick="setCategory('ATOL ABTA travel industry accreditation')">Accreditations</span>
+    </div>
+  </section>
+
+  <!-- Step 2: Edit list and run -->
+  <section class="card">
+    <h2>2. Review the list and run</h2>
+    <p class="sub">One brand per line. Edit freely before hitting Run. Already-imported brands are auto-skipped.</p>
+    <textarea class="textarea" id="brandList" placeholder="British Airways&#10;Virgin Atlantic&#10;easyJet&#10;Jet2"></textarea>
+    <div class="row" style="margin-top:14px">
+      <button class="btn" id="runBtn" onclick="runBulk()" style="flex:1">
+        <span id="runBtnText">Run bulk import</span>
+      </button>
+      <button class="btn secondary" onclick="document.getElementById('brandList').value=''">Clear</button>
+    </div>
+    <p class="help" id="brandCount">0 brands ready</p>
+  </section>
+
+  <!-- Step 3: Progress feed -->
+  <section class="card" id="progressCard" style="display:none">
+    <h2>3. Progress</h2>
+    <p class="sub" id="progressSub">Processing...</p>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="stats" id="stats">
+      <span class="stat" id="statTotal">0 of 0</span>
+      <span class="stat green" id="statSucceeded">0 saved</span>
+      <span class="stat amber" id="statSkipped">0 skipped</span>
+      <span class="stat red" id="statFailed">0 failed</span>
+    </div>
+    <div class="feed" id="feed"></div>
+  </section>
+</div>
+
+<script>
+  let password = sessionStorage.getItem('tg-logo-pw') || '';
+
+  function $(id){return document.getElementById(id)}
+  function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+  async function unlock() {
+    const v = $('passwordInput').value;
+    if (!v) return;
+    const r = await fetch('/api/resolve-domain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': v },
+      body: JSON.stringify({ brand: 'travelgenix' })
+    });
+    if (r.ok) {
+      password = v;
+      sessionStorage.setItem('tg-logo-pw', v);
+      $('gate').style.display = 'none';
+      $('app').style.display = 'block';
+    } else {
+      $('gateError').textContent = r.status === 401 ? 'Incorrect password' : 'Server error';
+      $('gateError').style.display = 'block';
     }
-  },
-  "headers": [
-    {
-      "source": "/api/list",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, OPTIONS" },
-        { "key": "Cache-Control", "value": "no-store" }
-      ]
-    },
-    {
-      "source": "/api/search",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, OPTIONS" },
-        { "key": "Cache-Control", "value": "no-store" }
-      ]
-    },
-    {
-      "source": "/api/(discover|save|resolve-domain|list-all)",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store" }
-      ]
+  }
+
+  if (password) {
+    $('gate').style.display = 'none';
+    $('app').style.display = 'block';
+  }
+
+  function toggleTheme() {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem('tg-logo-theme', next);
+  }
+  if (localStorage.getItem('tg-logo-theme') === 'dark') {
+    document.documentElement.dataset.theme = 'dark';
+  }
+
+  function setCategory(c) {
+    $('categoryInput').value = c;
+    suggestBrands();
+  }
+
+  // Live count
+  $('brandList').addEventListener('input', updateCount);
+  function updateCount() {
+    const lines = $('brandList').value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    $('brandCount').textContent = `${lines.length} brand${lines.length === 1 ? '' : 's'} ready`;
+  }
+
+  async function suggestBrands() {
+    const category = $('categoryInput').value.trim();
+    if (!category) return;
+    $('suggestBtn').disabled = true;
+    $('suggestBtnText').innerHTML = '<span class="spinner"></span> Asking Claude';
+
+    try {
+      const r = await fetch('/api/bulk-suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Password': password },
+        body: JSON.stringify({ category, limit: 30 })
+      });
+      if (r.status === 401) { sessionStorage.removeItem('tg-logo-pw'); location.reload(); return; }
+      if (!r.ok) throw new Error('Suggester failed');
+      const data = await r.json();
+      const existing = $('brandList').value.trim();
+      const newList = (data.brands || []).join('\n');
+      $('brandList').value = existing ? existing + '\n' + newList : newList;
+      updateCount();
+    } catch (err) {
+      alert('Couldn\'t fetch suggestions: ' + err.message);
+    } finally {
+      $('suggestBtn').disabled = false;
+      $('suggestBtnText').textContent = 'Suggest brands';
     }
-  ]
-}
+  }
+
+  async function runBulk() {
+    const text = $('brandList').value.trim();
+    const brands = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    if (brands.length === 0) {
+      alert('Add at least one brand to the list.');
+      return;
+    }
+    if (brands.length > 100) {
+      alert('Maximum 100 brands per run. Trim the list and try again.');
+      return;
+    }
+
+    $('runBtn').disabled = true;
+    $('runBtnText').innerHTML = '<span class="spinner"></span> Processing';
+    $('progressCard').style.display = 'block';
+    $('progressCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Pre-fill the feed with pending rows
+    $('feed').innerHTML = brands.map((b, i) => `
+      <div class="feed-row" id="row-${i}">
+        <div class="feed-icon pending">${i + 1}</div>
+        <div class="feed-brand">${escapeHtml(b)}</div>
+        <div class="feed-detail">Queued</div>
+      </div>
+    `).join('');
+
+    let succeeded = 0, skipped = 0, failed = 0;
+    const total = brands.length;
+    updateStats(0, 0, 0, total);
+
+    try {
+      const resp = await fetch('/api/bulk-process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Password': password },
+        body: JSON.stringify({ brands })
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: 'Server error' }));
+        throw new Error(err.error || 'Bulk import failed');
+      }
+
+      // Read SSE stream
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // Parse SSE messages — each one ends with double newline
+        const messages = buffer.split('\n\n');
+        buffer = messages.pop() || '';
+
+        for (const msg of messages) {
+          if (!msg.trim()) continue;
+          const eventMatch = msg.match(/^event:\s*(.+)$/m);
+          const dataMatch = msg.match(/^data:\s*(.+)$/m);
+          if (!eventMatch || !dataMatch) continue;
+          const event = eventMatch[1].trim();
+          let data;
+          try { data = JSON.parse(dataMatch[1]); } catch { continue; }
+
+          if (event === 'brand-start') {
+            const row = $('row-' + data.index);
+            if (row) {
+              row.querySelector('.feed-icon').className = 'feed-icon processing';
+              row.querySelector('.feed-icon').innerHTML = '<span class="spinner" style="width:10px;height:10px"></span>';
+              row.querySelector('.feed-detail').textContent = 'Processing...';
+            }
+          } else if (event === 'brand-done') {
+            const row = $('row-' + data.index);
+            if (row) {
+              row.querySelector('.feed-icon').className = 'feed-icon success';
+              row.querySelector('.feed-icon').innerHTML = '\u2713';
+              row.querySelector('.feed-detail').textContent = `${data.domain} \u2022 ${data.source} \u2022 ${data.assetCount} assets`;
+            }
+            succeeded++;
+            updateStats(succeeded, skipped, failed, total, succeeded + skipped + failed);
+          } else if (event === 'brand-skip') {
+            const row = $('row-' + data.index);
+            if (row) {
+              row.querySelector('.feed-icon').className = 'feed-icon skip';
+              row.querySelector('.feed-icon').innerHTML = '\u2014';
+              row.querySelector('.feed-detail').textContent = `${data.domain} \u2022 ${data.reason}`;
+            }
+            skipped++;
+            updateStats(succeeded, skipped, failed, total, succeeded + skipped + failed);
+          } else if (event === 'brand-fail') {
+            const row = $('row-' + data.index);
+            if (row) {
+              row.querySelector('.feed-icon').className = 'feed-icon fail';
+              row.querySelector('.feed-icon').innerHTML = '\u2717';
+              row.querySelector('.feed-detail').textContent = data.reason || 'Failed';
+            }
+            failed++;
+            updateStats(succeeded, skipped, failed, total, succeeded + skipped + failed);
+          } else if (event === 'done') {
+            $('progressSub').textContent = `Finished. ${data.succeeded} saved, ${data.skipped} skipped, ${data.failed} failed.`;
+          }
+        }
+      }
+    } catch (err) {
+      $('progressSub').textContent = 'Error: ' + err.message;
+      $('progressSub').style.color = 'var(--tg-error)';
+    } finally {
+      $('runBtn').disabled = false;
+      $('runBtnText').textContent = 'Run bulk import';
+    }
+  }
+
+  function updateStats(succ, skip, fail, total, processed) {
+    $('statTotal').textContent = `${processed || 0} of ${total}`;
+    $('statSucceeded').textContent = `${succ} saved`;
+    $('statSkipped').textContent = `${skip} skipped`;
+    $('statFailed').textContent = `${fail} failed`;
+    const pct = total > 0 ? ((processed || 0) / total) * 100 : 0;
+    $('progressFill').style.width = pct + '%';
+  }
+</script>
+
+</body>
+</html>
