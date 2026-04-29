@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logo Library — Travelgenix</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --tg-primary: #1B2B5B;
+    --tg-primary-light: #2A3F7A;
+    --tg-accent: #00B4D8;
+    --tg-accent-dark: #0096B7;
+    --tg-success: #10B981;
+    --tg-warning: #F59E0B;
+    --tg-error: #EF4444;
+    --tg-bg-primary: #FFFFFF;
+    --tg-bg-secondary: #F8FAFC;
+    --tg-bg-tertiary: #F1F5F9;
+    --tg-border: #E2E8F0;
+    --tg-text-primary: #0F172A;
+    --tg-text-secondary: #475569;
+    --tg-text-tertiary: #94A3B8;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.06);
+    --shadow-lg: 0 12px 32px rgba(15,23,42,.08);
+  }
+  [data-theme="dark"] {
+    --tg-bg-primary: #0F172A;
+    --tg-bg-secondary: #1E293B;
+    --tg-bg-tertiary: #334155;
+    --tg-border: #334155;
+    --tg-text-primary: #F8FAFC;
+    --tg-text-secondary: #CBD5E1;
+    --tg-text-tertiary: #64748B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--tg-bg-secondary);color:var(--tg-text-primary);font-size:15px;line-height:1.6;min-height:100vh}
+  .app{max-width:1200px;margin:0 auto;padding:32px 24px}
+  .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand-mark{width:36px;height:36px;background:var(--tg-primary);border-radius:var(--radius-md);display:grid;place-items:center;color:#fff}
+  .brand-text h1{font-size:16px;font-weight:600;letter-spacing:-.01em}
+  .brand-text p{font-size:13px;color:var(--tg-text-tertiary)}
+  .header-actions{display:flex;gap:8px}
+  .icon-btn{width:40px;height:40px;border-radius:var(--radius-md);border:1px solid var(--tg-border);background:var(--tg-bg-primary);cursor:pointer;display:grid;place-items:center;color:var(--tg-text-secondary);transition:all .15s ease}
+  .icon-btn:hover{border-color:var(--tg-accent);color:var(--tg-accent)}
+  .hero{background:var(--tg-bg-primary);border:1px solid var(--tg-border);border-radius:var(--radius-xl);padding:40px;box-shadow:var(--shadow-sm);margin-bottom:24px}
+  .hero-title{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-bottom:6px}
+  .hero-sub{color:var(--tg-text-secondary);margin-bottom:24px}
+  .search-row{display:flex;gap:12px;align-items:stretch}
+  .search-input{flex:1;height:52px;padding:0 18px;border:1px solid var(--tg-border);border-radius:var(--radius-md);background:var(--tg-bg-primary);color:var(--tg-text-primary);font-family:inherit;font-size:16px;transition:all .15s ease}
+  .search-input:focus{outline:none;border-color:var(--tg-accent);box-shadow:0 0 0 3px rgba(0,180,216,.15)}
+  .btn{height:52px;padding:0 28px;background:var(--tg-primary);color:#fff;border:none;border-radius:var(--radius-md);font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s ease;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn:hover{background:var(--tg-primary-light)}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+  .btn-mini{height:36px;padding:0 14px;background:var(--tg-bg-primary);border:1px solid var(--tg-border);border-radius:var(--radius-sm);color:var(--tg-text-primary);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s ease}
+  .btn-mini:hover{border-color:var(--tg-accent);color:var(--tg-accent)}
+  .btn-mini.primary{background:var(--tg-accent);color:#fff;border-color:var(--tg-accent)}
+  .btn-mini.primary:hover{background:var(--tg-accent-dark)}
+  .pipeline{display:grid;gap:16px}
+  .step{background:var(--tg-bg-primary);border:1px solid var(--tg-border);border-radius:var(--radius-lg);padding:20px 24px;box-shadow:var(--shadow-sm);transition:all .2s ease}
+  .step.active{border-color:var(--tg-accent)}
+  .step.success{border-left:3px solid var(--tg-success)}
+  .step.error{border-left:3px solid var(--tg-error)}
+  .step-head{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+  .step-num{width:28px;height:28px;border-radius:50%;background:var(--tg-bg-tertiary);color:var(--tg-text-secondary);display:grid;place-items:center;font-size:12px;font-weight:600;flex-shrink:0}
+  .step.active .step-num{background:var(--tg-accent);color:#fff}
+  .step.success .step-num{background:var(--tg-success);color:#fff}
+  .step.error .step-num{background:var(--tg-error);color:#fff}
+  .step-title{font-size:15px;font-weight:600;flex:1}
+  .step-status{font-size:13px;color:var(--tg-text-tertiary)}
+  .step-body{margin-left:40px;margin-top:12px;color:var(--tg-text-secondary);font-size:14px}
+  .step-body.empty{display:none}
+  .result-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:16px}
+  .logo-card{background:var(--tg-bg-secondary);border:1px solid var(--tg-border);border-radius:var(--radius-md);padding:16px;text-align:center;cursor:pointer;transition:all .15s ease;position:relative}
+  .logo-card:hover{border-color:var(--tg-accent);transform:translateY(-2px);box-shadow:var(--shadow-md)}
+  .logo-card.selected{border-color:var(--tg-accent);background:rgba(0,180,216,.04)}
+  .logo-card.selected::after{content:"\2713";position:absolute;top:8px;right:8px;width:22px;height:22px;background:var(--tg-accent);color:#fff;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700}
+  .logo-canvas{width:100%;height:90px;background:#fff;border-radius:var(--radius-sm);display:grid;place-items:center;margin-bottom:12px;overflow:hidden}
+  .logo-canvas img{max-width:80%;max-height:70px;object-fit:contain}
+  .logo-source{font-size:12px;font-weight:500;color:var(--tg-text-primary);margin-bottom:2px}
+  .logo-meta{font-size:11px;color:var(--tg-text-tertiary);text-transform:uppercase;letter-spacing:.05em}
+  .meta-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+  .field-label{display:block;font-size:13px;font-weight:500;color:var(--tg-text-secondary);margin-bottom:6px}
+  .field-input,.field-select,.field-textarea{width:100%;padding:10px 12px;border:1px solid var(--tg-border);border-radius:var(--radius-sm);background:var(--tg-bg-primary);color:var(--tg-text-primary);font-family:inherit;font-size:14px}
+  .field-input:focus,.field-select:focus,.field-textarea:focus{outline:none;border-color:var(--tg-accent);box-shadow:0 0 0 3px rgba(0,180,216,.15)}
+  .field-textarea{resize:vertical;min-height:60px}
+  .field-checkbox{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--tg-text-primary);cursor:pointer}
+  .field-checkbox input{width:18px;height:18px;cursor:pointer;accent-color:var(--tg-accent)}
+  .colour-swatch{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid var(--tg-border);vertical-align:middle;margin-right:6px}
+  .spinner{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .domain-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--tg-bg-tertiary);border-radius:100px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--tg-text-primary)}
+  .gate{position:fixed;inset:0;background:var(--tg-bg-secondary);display:grid;place-items:center;z-index:1000}
+  .gate-card{background:var(--tg-bg-primary);border:1px solid var(--tg-border);border-radius:var(--radius-xl);padding:40px;box-shadow:var(--shadow-lg);max-width:400px;width:90%}
+  .gate-card h2{font-size:20px;font-weight:700;margin-bottom:8px}
+  .gate-card p{color:var(--tg-text-secondary);margin-bottom:24px;font-size:14px}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--tg-primary);color:#fff;padding:14px 20px;border-radius:var(--radius-md);box-shadow:var(--shadow-lg);font-size:14px;font-weight:500;z-index:1100;opacity:0;transform:translateY(10px);transition:all .2s ease}
+  .toast.show{opacity:1;transform:translateY(0)}
+  .toast.error{background:var(--tg-error)}
+  .toast.success{background:var(--tg-success)}
+  @media (max-width:640px){.hero{padding:24px}.search-row{flex-direction:column}.meta-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <h2>Logo Library</h2>
+    <p>Enter your admin password to continue.</p>
+    <input type="password" class="field-input" id="passwordInput" placeholder="Password" onkeydown="if(event.key==='Enter')unlock()" autofocus>
+    <button class="btn" style="width:100%;margin-top:16px" onclick="unlock()">Unlock</button>
+    <p id="gateError" style="color:var(--tg-error);margin-top:12px;display:none"></p>
+  </div>
+</div>
+
+<div class="app" id="app" style="display:none">
+  <header class="header">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          <circle cx="9" cy="9" r="2"/>
+          <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>Logo Library</h1>
+        <p>Travelgenix internal</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+      </button>
+      <button class="icon-btn" onclick="logout()" aria-label="Sign out" title="Sign out">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h2 class="hero-title">Find a brand logo</h2>
+    <p class="hero-sub">Type a brand name. We'll resolve the domain, fetch logos from multiple sources, and prepare SVG and transparent PNG variants.</p>
+    <div class="search-row">
+      <input type="text" class="search-input" id="brandInput" placeholder="e.g. Virgin Atlantic" onkeydown="if(event.key==='Enter')runPipeline()">
+      <button class="btn" id="runBtn" onclick="runPipeline()">
+        <span id="runBtnText">Discover</span>
+      </button>
+    </div>
+  </section>
+
+  <div class="pipeline" id="pipeline">
+    <div class="step" id="step1">
+      <div class="step-head"><div class="step-num">1</div><div class="step-title">Resolve domain</div><div class="step-status" id="step1Status">Ready</div></div>
+      <div class="step-body empty" id="step1Body"></div>
+    </div>
+    <div class="step" id="step2">
+      <div class="step-head"><div class="step-num">2</div><div class="step-title">Discover logos</div><div class="step-status" id="step2Status">Waiting</div></div>
+      <div class="step-body empty" id="step2Body"></div>
+    </div>
+    <div class="step" id="step3">
+      <div class="step-head"><div class="step-num">3</div><div class="step-title">Select preferred logo</div><div class="step-status" id="step3Status">Waiting</div></div>
+      <div class="step-body empty" id="step3Body"></div>
+    </div>
+    <div class="step" id="step4">
+      <div class="step-head"><div class="step-num">4</div><div class="step-title">Confirm details</div><div class="step-status" id="step4Status">Waiting</div></div>
+      <div class="step-body empty" id="step4Body"></div>
+    </div>
+    <div class="step" id="step5">
+      <div class="step-head"><div class="step-num">5</div><div class="step-title">Save to library</div><div class="step-status" id="step5Status">Waiting</div></div>
+      <div class="step-body empty" id="step5Body"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let password = sessionStorage.getItem('tg-logo-pw') || '';
+  let candidates = [];
+  let selected = null;
+  let resolvedDomain = '';
+  let brandfetchMeta = null;
+  let sourcesTried = [];
+  let sourcesSucceeded = [];
+
+  function $(id){return document.getElementById(id)}
+  function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+  async function unlock() {
+    const v = $('passwordInput').value;
+    if (!v) return;
+    const r = await fetch('/api/resolve-domain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': v },
+      body: JSON.stringify({ brand: 'travelgenix' })
+    });
+    if (r.ok) {
+      password = v;
+      sessionStorage.setItem('tg-logo-pw', v);
+      $('gate').style.display = 'none';
+      $('app').style.display = 'block';
+    } else {
+      $('gateError').textContent = r.status === 401 ? 'Incorrect password' : 'Server error - try again';
+      $('gateError').style.display = 'block';
+    }
+  }
+  function logout() {
+    sessionStorage.removeItem('tg-logo-pw');
+    location.reload();
+  }
+  async function api(path, body, method = 'POST') {
+    const opts = { method, headers: { 'X-Admin-Password': password } };
+    if (body) {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(body);
+    }
+    const r = await fetch(path, opts);
+    if (r.status === 401) { logout(); throw new Error('Unauthorized'); }
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(err.error || `HTTP ${r.status}`);
+    }
+    return r.json();
+  }
+
+  if (password) {
+    $('gate').style.display = 'none';
+    $('app').style.display = 'block';
+  }
+
+  function toggleTheme() {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem('tg-logo-theme', next);
+  }
+  if (localStorage.getItem('tg-logo-theme') === 'dark') {
+    document.documentElement.dataset.theme = 'dark';
+  }
+
+  function setStep(num, state, status) {
+    const step = $('step' + num);
+    step.classList.remove('active', 'success', 'error');
+    if (state) step.classList.add(state);
+    $('step' + num + 'Status').textContent = status;
+  }
+  function setStepBody(num, html) {
+    const body = $('step' + num + 'Body');
+    body.innerHTML = html;
+    body.classList.remove('empty');
+  }
+  function reset() {
+    candidates = []; selected = null; resolvedDomain = ''; brandfetchMeta = null;
+    for (let i = 1; i <= 5; i++) {
+      setStep(i, null, i === 1 ? 'Ready' : 'Waiting');
+      $('step' + i + 'Body').classList.add('empty');
+      $('step' + i + 'Body').innerHTML = '';
+    }
+  }
+  function showToast(msg, type) {
+    const t = $('toast');
+    t.className = 'toast show' + (type ? ' ' + type : '');
+    t.textContent = msg;
+    setTimeout(() => t.className = 'toast', 3500);
+  }
+
+  async function runPipeline() {
+    const brand = $('brandInput').value.trim();
+    if (!brand) return;
+
+    reset();
+    $('runBtn').disabled = true;
+    $('runBtnText').innerHTML = '<span class="spinner"></span> Working';
+
+    try {
+      setStep(1, 'active', 'Resolving...');
+      const r1 = await api('/api/resolve-domain', { brand });
+      resolvedDomain = r1.domain;
+      setStepBody(1, `
+        <div>Brand: <strong>${escapeHtml(brand)}</strong></div>
+        <div style="margin-top:8px">Resolved to: <span class="domain-pill">${r1.domain}</span> via ${r1.method} (${r1.confidence} confidence)</div>
+      `);
+      setStep(1, 'success', 'Done');
+
+      setStep(2, 'active', 'Fetching from all sources...');
+      const r2 = await api('/api/discover', { domain: r1.domain });
+      candidates = r2.candidates;
+      brandfetchMeta = r2.brandfetch;
+      sourcesTried = r2.sourcesTried;
+      sourcesSucceeded = r2.sourcesSucceeded;
+
+      if (candidates.length === 0) {
+        setStepBody(2, `<div style="color:var(--tg-error)">No logos found for ${escapeHtml(r1.domain)}.</div>`);
+        setStep(2, 'error', 'No candidates');
+        return;
+      }
+      const summary = sourcesSucceeded.map(s => `<div>\u2713 ${escapeHtml(s)}</div>`).join('');
+      const colours = brandfetchMeta?.colourPrimary
+        ? `<div style="margin-top:8px;font-size:13px">Brand colours: <span class="colour-swatch" style="background:${brandfetchMeta.colourPrimary}"></span>${brandfetchMeta.colourPrimary}${brandfetchMeta.colourSecondary ? ` <span class="colour-swatch" style="background:${brandfetchMeta.colourSecondary};margin-left:8px"></span>${brandfetchMeta.colourSecondary}` : ''}</div>`
+        : '';
+      setStepBody(2, summary + colours);
+      setStep(2, 'success', `${candidates.length} candidates`);
+
+      setStep(3, 'active', 'Choose one');
+      const grid = candidates.map((c, i) => `
+        <div class="logo-card" onclick="selectCandidate(${i})" id="cand${i}">
+          <div class="logo-canvas"><img src="${escapeHtml(c.url)}" alt="" crossorigin="anonymous" onerror="this.style.opacity=0.3"></div>
+          <div class="logo-source">${escapeHtml(c.source)}</div>
+          <div class="logo-meta">${c.width}x${c.height} ${c.format.toUpperCase()}${c.isSvg ? ' (vector)' : ''}</div>
+        </div>
+      `).join('');
+      setStepBody(3, `<div style="margin-bottom:8px">Click to select:</div><div class="result-grid">${grid}</div>`);
+      selectCandidate(0);
+
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      $('runBtn').disabled = false;
+      $('runBtnText').textContent = 'Discover';
+    }
+  }
+
+  function selectCandidate(index) {
+    selected = candidates[index];
+    document.querySelectorAll('.logo-card').forEach((el, i) => el.classList.toggle('selected', i === index));
+    setStep(3, 'success', `${selected.source} selected`);
+
+    setStep(4, 'active', 'Review and confirm');
+    const brand = $('brandInput').value.trim();
+    setStepBody(4, `
+      <div class="meta-row">
+        <div>
+          <label class="field-label" for="metaName">Brand name</label>
+          <input type="text" class="field-input" id="metaName" value="${escapeHtml(brand)}">
+        </div>
+        <div>
+          <label class="field-label" for="metaCategory">Category</label>
+          <select class="field-select" id="metaCategory">
+            <option>Airline</option>
+            <option>Hotel</option>
+            <option>Tour Operator</option>
+            <option>Cruise</option>
+            <option>Bedbank</option>
+            <option>Tech / Platform</option>
+            <option>Consortia / Partner</option>
+            <option>Transfers / Ancillary</option>
+            <option selected>Other</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label class="field-label" for="metaNotes">Notes</label>
+        <textarea class="field-textarea" id="metaNotes" placeholder="Optional notes about this brand"></textarea>
+      </div>
+      <div style="margin-top:12px">
+        <label class="field-checkbox">
+          <input type="checkbox" id="metaTgSupplier">
+          Travelgenix supplier
+        </label>
+      </div>
+      <div style="margin-top:16px">
+        <button class="btn-mini primary" onclick="saveLogo()">Save to library</button>
+      </div>
+    `);
+  }
+
+  async function saveLogo() {
+    if (!selected) return;
+    setStep(5, 'active', 'Saving...');
+    setStepBody(5, '<div><span class="spinner"></span> Downloading, processing, uploading, writing to Airtable...</div>');
+
+    try {
+      const payload = {
+        brandName: $('metaName').value.trim(),
+        domain: resolvedDomain,
+        selectedUrl: selected.url,
+        selectedSource: selected.source,
+        category: $('metaCategory').value,
+        tgSupplier: $('metaTgSupplier').checked,
+        notes: $('metaNotes').value.trim(),
+        sourcesTried,
+        sourcesSucceeded
+      };
+      const result = await api('/api/save', payload);
+
+      const assetList = result.assets.map(a => `
+        <div style="margin:6px 0">
+          ${escapeHtml(a.type)}: <a href="${escapeHtml(a.url)}" target="_blank" rel="noopener" style="color:var(--tg-accent);text-decoration:none">${escapeHtml(a.url.slice(0, 60))}...</a>
+        </div>
+      `).join('');
+
+      setStepBody(5, `
+        <div style="color:var(--tg-success);font-weight:500">\u2713 Saved to library</div>
+        <div style="margin-top:12px">${assetList}</div>
+        <div style="margin-top:16px">
+          <button class="btn-mini" onclick="reset();document.getElementById('brandInput').focus()">Add another</button>
+        </div>
+      `);
+      setStep(5, 'success', 'Saved');
+      showToast('Logo saved successfully', 'success');
+    } catch (err) {
+      setStepBody(5, `<div style="color:var(--tg-error)">Save failed: ${escapeHtml(err.message)}</div>`);
+      setStep(5, 'error', 'Failed');
+      showToast(err.message, 'error');
+    }
+  }
+</script>
+
+</body>
+</html>
