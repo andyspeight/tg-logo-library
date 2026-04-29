@@ -15,6 +15,8 @@ export default async function handler(req, res) {
   if (!rl.ok) return denyRateLimit(res, rl.reset);
 
   const { sort, filter, offset } = req.query;
+
+  // Sort config — uses field IDs since we're returning fields by ID
   const validSorts = {
     'date-desc': [{ field: BRAND_FIELDS.DATE_ADDED, direction: 'desc' }],
     'date-asc': [{ field: BRAND_FIELDS.DATE_ADDED, direction: 'asc' }],
@@ -24,7 +26,6 @@ export default async function handler(req, res) {
   };
   const sortConfig = validSorts[sort] || validSorts['date-desc'];
 
-  // Build filter formula
   let filterByFormula;
   if (filter === 'tg-suppliers') {
     filterByFormula = `{Travelgenix Supplier} = 1`;
@@ -34,6 +35,7 @@ export default async function handler(req, res) {
 
   try {
     const selectOpts = {
+      returnFieldsByFieldId: true,
       sort: sortConfig,
       pageSize: 50,
       fields: [
@@ -56,16 +58,12 @@ export default async function handler(req, res) {
     let nextOffset = null;
 
     if (offset) {
-      // Continue from a previous page — use eachPage with manual offset handling
-      // The Airtable JS SDK doesn't expose offset directly, so we paginate via the raw API
       const allRecords = [];
       await query.eachPage((pageRecords, fetchNextPage) => {
         pageRecords.forEach(r => allRecords.push(r));
-        // Stop after we have what we need
         if (allRecords.length >= 1000) return;
         fetchNextPage();
       });
-      // Slice based on offset (numeric)
       const start = parseInt(offset, 10) || 0;
       records = allRecords.slice(start, start + 50);
       if (allRecords.length > start + 50) nextOffset = (start + 50).toString();
@@ -74,17 +72,18 @@ export default async function handler(req, res) {
       if (records.length === 50) nextOffset = '50';
     }
 
-    // Collect asset IDs to fetch preview thumbnails
+    // Collect first asset ID per brand for previews
     const allAssetIds = [];
     records.forEach(r => {
       const ids = r.get(BRAND_FIELDS.ASSETS) || [];
-      if (ids[0]) allAssetIds.push(ids[0]); // just the first asset for preview
+      if (ids[0]) allAssetIds.push(ids[0]);
     });
 
     let previewById = {};
     if (allAssetIds.length > 0) {
       const assetFormula = `OR(${allAssetIds.map(id => `RECORD_ID()="${id}"`).join(',')})`;
       const assetRecords = await base(TABLES.ASSETS).select({
+        returnFieldsByFieldId: true,
         filterByFormula: assetFormula,
         fields: [ASSET_FIELDS.TYPE, ASSET_FIELDS.FILE_URL]
       }).all();
