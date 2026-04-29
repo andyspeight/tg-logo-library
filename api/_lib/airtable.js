@@ -64,7 +64,9 @@ export async function findBrandByDomain(domain) {
   if (!target) return null;
 
   try {
+    // returnFieldsByFieldId makes r.get('fldXXX...') work reliably
     const all = await base(TABLES.BRANDS).select({
+      returnFieldsByFieldId: true,
       fields: [BRAND_FIELDS.DOMAIN, BRAND_FIELDS.NAME]
     }).all();
 
@@ -82,7 +84,9 @@ export async function findBrandByDomain(domain) {
     }
 
     console.log('[findBrandByDomain] Match found:', match.id);
-    return await base(TABLES.BRANDS).find(match.id);
+    // Re-fetch with all fields, again returning by field ID
+    const fullRecord = await base(TABLES.BRANDS).find(match.id);
+    return fullRecord;
   } catch (err) {
     console.error('[findBrandByDomain] Error:', err.message, err);
     throw err;
@@ -165,12 +169,24 @@ export async function listAssetsByDomain(domain) {
   const brand = await findBrandByDomain(domain);
   if (!brand) return null;
 
-  const assetIds = brand.get(BRAND_FIELDS.ASSETS) || [];
-  if (assetIds.length === 0) return { brand, assets: [] };
+  // Note: brand was fetched via .find() which returns fields by NAME by default.
+  // But our calling code (api/list.js) uses BRAND_FIELDS.ASSETS as a key,
+  // so we need to map back. Easiest: fetch by ID format.
+  const brandWithIds = await base(TABLES.BRANDS).select({
+    returnFieldsByFieldId: true,
+    filterByFormula: `RECORD_ID() = "${brand.id}"`,
+    maxRecords: 1
+  }).firstPage();
+
+  if (!brandWithIds[0]) return null;
+
+  const assetIds = brandWithIds[0].get(BRAND_FIELDS.ASSETS) || [];
+  if (assetIds.length === 0) return { brand: brandWithIds[0], assets: [] };
 
   const assets = await base(TABLES.ASSETS).select({
+    returnFieldsByFieldId: true,
     filterByFormula: `OR(${assetIds.map(id => `RECORD_ID() = "${id}"`).join(',')})`
   }).all();
 
-  return { brand, assets };
+  return { brand: brandWithIds[0], assets };
 }
