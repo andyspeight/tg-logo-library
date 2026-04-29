@@ -4,7 +4,6 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY })
   .base(process.env.AIRTABLE_BASE_ID);
 
 // ============ TABLE + FIELD IDS ============
-// Hardcoded so renaming in the Airtable UI never breaks code.
 
 export const TABLES = {
   BRANDS: 'tblcy7DwlCfCdUNVd',
@@ -53,31 +52,38 @@ export const LOG_FIELDS = {
 
 // ============ HELPERS ============
 
-/**
- * Find an existing brand record by domain (case-insensitive).
- * Uses string concatenation trick (& "") to coerce URL field to text,
- * which makes LOWER() work reliably. Strips https:// and trailing slashes
- * for robust comparison since URL fields can store various formats.
- */
-export async function findBrandByDomain(domain) {
-  const normalised = domain
+/** Normalise a domain for comparison: lowercase, no protocol, no trailing slash, no www. */
+function normaliseDomain(d) {
+  if (!d) return '';
+  return String(d)
     .toLowerCase()
+    .trim()
     .replace(/^https?:\/\//, '')
-    .replace(/\/$/, '')
-    .replace(/"/g, '');
-
-  // SUBSTITUTE() strips https:// and trailing slash from the stored value
-  // so we compare clean domain to clean domain
-  const formula = `LOWER(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Domain} & "", "https://", ""), "http://", ""), "/", "")) = "${normalised}"`;
-
-  const records = await base(TABLES.BRANDS).select({
-    filterByFormula: formula,
-    maxRecords: 1
-  }).firstPage();
-  return records[0] || null;
+    .replace(/^www\./, '')
+    .replace(/\/+$/, '');
 }
 
-/** Create a new brand record. Returns the record. */
+/**
+ * Find an existing brand record by domain (case-insensitive).
+ * Pulls all brands and filters in code — bulletproof against any Airtable URL field weirdness.
+ * Performance is fine for our scale (a few hundred brands max).
+ */
+export async function findBrandByDomain(domain) {
+  const target = normaliseDomain(domain);
+  if (!target) return null;
+
+  const all = await base(TABLES.BRANDS).select({
+    fields: [BRAND_FIELDS.DOMAIN]
+  }).all();
+
+  const match = all.find(r => normaliseDomain(r.get(BRAND_FIELDS.DOMAIN)) === target);
+  if (!match) return null;
+
+  // Re-fetch with all fields populated
+  return await base(TABLES.BRANDS).find(match.id);
+}
+
+/** Create a new brand record. */
 export async function createBrand(fields) {
   const records = await base(TABLES.BRANDS).create([{
     fields: {
